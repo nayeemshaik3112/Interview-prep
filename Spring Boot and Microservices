@@ -7,7 +7,7 @@ Client → Controller → Service → Repository → DB
               Response and Request
 
 microservices - Client → API Gateway → Controller → Service → Feign → Other Service → DB
-
+----------------------------------------------------------------------------------------------------------------
 CONTROLLER:Presentation Layer
 
 @controller                                vs     @restcontroller
@@ -51,4 +51,50 @@ ok()	200
 created()	201
 badRequest()	400
 notFound()	404
+----------------------------------------------------------------------------------------------------------------
+SERVICE : Business logic layer ,Spring-managed bean
+@service above to the class
+@Autowired: injects the dependency
+
+@Autowired
+private UserRepository repo;
+
+ @Transactional
+ if we are talking to DB to save or any other operations then we use this 
+
+ so when we use  @Transactional then it will create a proxy for the data base call if no execptions raise then it will make change in original DB
+ if any error is there, then it will roll back
+ ----------------------------------------------------------------------------------------------------------------
+REPOSITORY : repo layer Data Access
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+
+@Query
+
+@Query("SELECT u FROM User u WHERE u.name = :name")
+List<User> findByName(String name);
+
+@Modifying
+
+@Modifying
+@Query("UPDATE User u SET u.name = :name WHERE u.id = :id")
+----------------------------------------------------------------------------------------------------------------
+ENTITY : for creating the entities
+
+@Entity
+@Table
+
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+
+@Column(nullable = false)
+private String name;
+
+@OneToMany, @ManyToOne, @OneToOne, @ManyToMany
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "user_id")
+private User user;
 ----------------------------------------------------------------------------------------------------------------
