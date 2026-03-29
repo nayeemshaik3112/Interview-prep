@@ -98,3 +98,19 @@ private String name;
 @JoinColumn(name = "user_id")
 private User user;
 ----------------------------------------------------------------------------------------------------------------
+DTO LAYER
+
+@NotNull , @NotBlank, @Size, @Email write above the field in DTO class for validation
+----------------------------------------------------------------------------------------------------------------
+Global Exception Handling
+
+@ControllerAdvice
+@ControllerAdvice
+public class GlobalExceptionHandler {
+}
+
+@ExceptionHandler
+
+@ExceptionHandler(Exception.class)
+public ResponseEntity<String> handle(Exception ex)
+----------------------------------------------------------------------------------------------------------------
