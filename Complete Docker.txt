@@ -27,3 +27,41 @@ docker image - verify image is created or not
 
 docker run -p 8080/8080 ourdockerhubusername/servicename
 
+1.What are dockers
+
+2.How is containers are different from virtual machines
+Containers it is light weight in nature and it aslso has OS and evry other things that supports to run our images but all the things in minial
+Virtual machines are those with heavy weight , complete os , complete kernel 
+
+3.What is the docker life cycle
+explain the interviewer from creating a docker file to creating a docker image to pushing it to external hubs like docker hub and to push into registry
+
+4.What are the different docker component
+
+docker client where we run our command basically - docker clean complie  jib:dockerBuild and etc
+this client will speak to 
+
+docker demeon
+it is the heart and brain of docker if it goes down everything will goes down
+
+it has the containers and images - Images means blueprint , Container means our spring boot real application
+
+last one - registry Place where images are stored
+
+Examples:
+
+Docker Hub
+Private registries
+
+docker pull → download image
+docker push → upload image
+
+5.What is docker add vs copy difference  - Copies files from your local system → into image 
+
+COPY app.jar /app/app.jar
+
+6. What are network in docker  - BRIDGE, HOST, OVERLAY, MACVLAN
+BRIDGE is the default Docker network; it provides isolated networking within a single host, 
+while HOST removes isolation, 
+OVERLAY connects containers across hosts, and 
+MACVLAN assigns real network IPs to containers.”
