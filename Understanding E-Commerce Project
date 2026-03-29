@@ -1,0 +1,29 @@
+          id: order-service
+          uri: lb://order-service //
+          predicates:
+            - Path=/api/orders/**
+
+unique ID with Order-Service
+
+uri with lb - load balancer so, the request comes to api-gateway to 8080 port and eureka decides which load balancer to use
+predicates: any paths Path=/api/orders/**
+
+ex: api/orders/123  
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+why service-registry not localhost: 
+
+Because:
+
+Likely using Docker
+Container name = service-registry
+
+instance:
+  prefer-ip-address: true
+
+register with ip instead of hostman helps for docker
+
+SYNCHRONOUS vs ASYNCHRONOUS (INTERVIEW GOLD)
