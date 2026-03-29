@@ -1,0 +1,54 @@
+List of all the annotations in spring boot and in microservices and there uses 
+
+Client → Controller → Service → Repository → DB
+                 ↓
+              DTO Mapping
+                 ↓
+              Response and Request
+
+microservices - Client → API Gateway → Controller → Service → Feign → Other Service → DB
+
+CONTROLLER:Presentation Layer
+
+@controller                                vs     @restcontroller
+Used for MVC applications (View-based)            Returns JSON directly            
+Returns HTML / JSP / Thymeleaf 
+
+@RequestMapping - generic all the api's should follow this , in get or other mapping we can define the rest of api structure
+@GetMapping, @Postmapping, @PutMapping, @DeleteMapping
+
+@RequestBody
+Convert JSON → Java object
+
+@PostMapping
+public User create(@RequestBody User user)
+
+@PathVariable
+@GetMapping("/{id}")
+public User get(@PathVariable Long id)
+
+@RequestParam
+@GetMapping
+public List<User> get(@RequestParam String name)
+
+@Valid
+Used for validation (DTO level)
+public Response create(@Valid @RequestBody UserDTO dto)
+
+this will check whethjer the JSON is in DTO format or not if not MethodArgumentNotValidException
+
+ResponseEntity
+return ResponseEntity.ok(user);
+return ResponseEntity.status(HttpStatus.CREATED).body(user);
+return ResponseEntity.status(HttpStatus.CREATED).body(user);
+return ResponseEntity
+        .status(200)
+        .header("Custom-Header", "value")
+        .body(user);
+
+Method	Meaning
+ok()	200
+created()	201
+badRequest()	400
+notFound()	404
+----------------------------------------------------------------------------------------------------------------
