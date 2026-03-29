@@ -1,0 +1,29 @@
+Interview Preparation for Docker
+
+What are containers containerization, Docker, Docker Images and two imp os kernel features - Namespace and controlgroups
+Namespace -> it has its own process list “Namespace is a logical separation that prevents naming conflicts and provides isolation.”
+Network Namespace -> which port it can use
+Cgroups -> we can allocate the dedicated space to the containers
+
+JAR vs WAR
+
+MAVEN Commands- mvn clean, mvn complie, mvn test, mvn package, mvn install, 
+mvn clean install - Combines: clean + compile + test + package + install
+mvn spring-boot:run
+
+To create a docker image using the google Jib method
+
+1.Add the Jib Plugin in Pom.xml
+mvn clean compile jib:dockerBuild
+
+What happens internally:
+
+Compiles your Spring Boot app
+Takes base Java image
+Adds your app layers
+Creates Docker image
+
+docker image - verify image is created or not
+
+docker run -p 8080/8080 ourdockerhubusername/servicename
+
