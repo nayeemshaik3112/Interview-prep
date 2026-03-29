@@ -65,3 +65,10 @@ BRIDGE is the default Docker network; it provides isolated networking within a s
 while HOST removes isolation, 
 OVERLAY connects containers across hosts, and 
 MACVLAN assigns real network IPs to containers.”
+
+7. What is multi stage build in Docker
+Multi stage help to build docker in multiple stages allowing to copy the artifacts from one to another stage. the major advantage is 
+to build the light weight containers
+
+Challenges with docker 
+docker demeon is the Challenge as it is brain and heart it goes down, everthing goes down
