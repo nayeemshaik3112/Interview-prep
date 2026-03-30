@@ -1,0 +1,16 @@
+Reverse of each character in the given array of characters.
+
+class Solution {
+    public void reverseString(List<Character> s) {
+        int i = 0, j = s.size() - 1;
+
+        while (i < j) {
+            char temp = s.get(i);      
+            s.set(i, s.get(j));       
+            s.set(j, temp);            
+
+            i++;
+            j--;
+        }
+    }
+}
