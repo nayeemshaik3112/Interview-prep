@@ -72,3 +72,55 @@ to build the light weight containers
 
 Challenges with docker 
 docker demeon is the Challenge as it is brain and heart it goes down, everthing goes down
+
+
+DOCKER SWARM – QUICK NOTES + INTERVIEW OBJECTIVES
+
+DEFINITION
+Docker Swarm is Docker’s native orchestration tool used to manage and scale containers across multiple machines (nodes) as a cluster.
+
+ARCHITECTURE
+
+Node Types:
+Manager Node → Handles scheduling, cluster state, decisions
+Worker Node → Executes containers
+Service → Defines desired state (image, replicas, ports)
+Task → Running instance of a container
+
+KEY CONCEPTS
+
+Desired State → Swarm maintains defined replicas automatically
+Self-Healing → Failed containers are restarted automatically
+Load Balancing → Built-in routing to distribute traffic
+Scaling → Increase/decrease replicas dynamically
+Rolling Updates → Zero-downtime deployments
+Overlay Network → Communication across nodes
+Secrets → Secure storage of sensitive data
+
+CORE COMMANDS
+
+docker swarm init
+docker swarm join
+docker service create
+docker service ls
+docker service scale
+docker service update
+docker service rm
+
+INTERNAL WORKING
+
+Scheduler → Assigns tasks to nodes
+Raft Algorithm → Maintains cluster consistency (manager nodes)
+Gossip Protocol → Node-to-node communication
+
+USE CASES
+
+Microservices deployment
+High availability systems
+Load-balanced applications
+
+LIMITATIONS
+
+Limited ecosystem
+Less adoption compared to Kubernetes
+
