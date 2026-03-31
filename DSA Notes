@@ -44,4 +44,19 @@ sb.toString();
 -----------------------------------------------------------------------------
 StringBuffer (Bonus for Interview)
 What is it?
-Same as StringBuilder but thread-safe
+Same as StringBuilder but thread-safe because “StringBuffer uses synchronized methods”
+
+Some Questions
+
+String Pool vs Heap?
+
+Pool stores literals
+Heap stores objects created via new
+
++ vs concat
+ + and Concat does the same, both will add only
+
+ but in concat s1 means the original value won;t change but in + it will create a new object and assign it to s1
+
+ means in + -> s1 = s1 + " World"; // creates a new object and assigns it to s1 , s1 has been mutated to point to the new object
+    in concat -> s1.concat(" World"); // creates a new object but s1 still points to the original object, s1 is not mutated
