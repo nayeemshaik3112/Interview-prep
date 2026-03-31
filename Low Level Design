@@ -84,3 +84,83 @@ executor.submit(() -> {
 });
 
 executor.shutdown();
+---------------------------------------------------------------------------------------------------
+Implementing Multithreading by Using the Callable Interface and Future
+
+class some implements Callable<String>{
+    @Override
+    public String call() throws InterruptedException {
+        Thread.sleep(2000); // Simulate a time-consuming task
+        return "Task Completed";
+    }
+}
+
+class SMSTask implements Runnable {
+    public void run() {
+        try {
+            Thread.sleep(2000); // Simulate 2-second delay for SMS
+            System.out.println("SMS Sent using Runnable.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+main{
+    ExecutorService executorService = Executors.newFixedThreadPool(3);
+    SMSTask smsTask = new SMSTask();
+    Future<String> etaResult = executorService.submit(etaTask);
+    executorService.submit(smsTask);
+
+    try {
+            System.out.println(etaResult.get()); 
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }   
+        executorService.shutdown();
+}
+---------------------------------------------------------------------------------------------------
+Other Ways to Implement Multithreading in Java
+
+1. Directly Defining a Runnable Instance
+
+class Main {
+    public static void main(String[] args) {
+        // Define Runnable directly as an anonymous class
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000); // Simulate delay
+                    System.out.println("Task completed using direct Runnable.");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        // Create and start the thread
+        Thread thread = new Thread(task);
+        thread.start();
+    }
+}
+This Runnable Interface is directly defined as an anonymous class, which is a common way to implement multithreading without creating a separate class.
+---------------------------------------------------------------------------------------------------
+2. Using Lambda Expressions (Java 8 and Above)
+
+class Main {
+    public static void main(String[] args) {
+        Runnable task = () -> {
+            try {
+                Thread.sleep(2000); 
+                System.out.println("Task completed using Lambda expression.");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
+
+        Thread thread = new Thread(task);
+        thread.start();
+    }
+}
+---------------------------------------------------------------------------------------------------
