@@ -1,0 +1,86 @@
+Multi threading
+
+Process vs Threads, cores, context switching, Hyperthreading
+
+Context switching vs Hyperthreading 
+CS -> Where one core will switch to another core , it will resume the work later so saves time
+HT -> it is developed by intel, one core acts as 2 logical cores
+
+Concurrency vs Parallelism, shared vs isolated memory
+----------------------------------------------------------------------------------------------------
+Implementing Multithreading by Extending the Thread Class
+
+class SMSThread extends Thread {
+    public void run() {
+        try {
+            Thread.sleep(2000); // 2-second delay for SMS
+            System.out.println("SMS Sent using Thread.");
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+    }    
+}
+
+Main{
+
+    SMSThread smsThread = new SMSThread();
+    smsThread.start(); // Start the thread to send SMS
+    try{
+        smsThread.join(); // Wait for the SMS thread to finish
+    }
+    catch(InterruptedException e){
+        e.printStackTrace();
+    }
+}
+----------------------------------------------------------------------------------------------------
+Implementing Multithreading by Using the Runnable Interface
+
+class SMSTask implements Runnable {
+    public void run() {
+        try {
+            Thread.sleep(2000); // 2-second delay for SMS
+            System.out.println("SMS Sent using Runnable.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+Main{
+
+    SMSTask smsTask = new SMSTask();
+    Thread smsThread = new Thread(smsTask);
+
+    smsThread.start(); // Start the thread to send SMS
+    try {
+        smsThread.join(); // Wait for the SMS thread to finish
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+
+Advantages of Using Runnable
+Separation of Concerns: By using Runnable, we separate the task logic from the thread management. 
+This is particularly useful when you need to share the same task between multiple threads.
+---------------------------------------------------------------------------------------------------
+Implementing Multithreading by Using the Callable Interface and Future
+
+Executor (interface)
+    ↑
+ExecutorService (interface)
+    ↑
+AbstractExecutorService (abstract class)
+    ↑
+ThreadPoolExecutor (class)
+--------------------------------
+executor.submit(() -> task);
+executor.execute(() -> task);
+executor.shutdown();
+--------------------------------
+ExecutorService executor = Executors.newFixedThreadPool(3);
+
+executor.submit(() -> {
+    System.out.println(Thread.currentThread().getName());
+});
+
+executor.shutdown();
