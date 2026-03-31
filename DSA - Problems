@@ -66,4 +66,9 @@ class Solution {
 
     }
 }
+
+Time complexity - 0(M * N * log N) 
+To sort the array of strings takes O(N log N) time, where N is the number of strings in the array.
+Comparing the first and last strings takes O(M) time, where M is the length of
+Space complexity - 0(M) where M is the length of the longest common prefix.
 -----------------------------------------------------------------------------------

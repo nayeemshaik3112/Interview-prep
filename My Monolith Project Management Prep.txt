@@ -1,8 +1,0 @@
-Pagable - this is in built function
-that if our projects has 100 of records and I load project/01 then it loads all the 100 then search for 01
-
-Pagable will make like page -> GET /tasks?projectId=1&page=0&size=5
-
-first 5 is fetched , saves times and efforts
-
-return taskPage.map(this::mapToDTO); -> map is the in build function.
