@@ -40,3 +40,30 @@ class Solution {
     }
 }
 -----------------------------------------------------------------------------------
+Longest Common Prefix
+Example - Input: ["flower","flow","flight"]
+Output: "fl"
+
+import java.util.*;
+class Solution {    
+    public String longestCommonPrefix(String[] str) {
+
+        StringBuilder strbuild = new StringBuilder();
+        
+        Arrays.sort(str);
+
+        String first = str[0];
+        String last = str[str.length-1];
+
+        for (int i=0; i< Math.min(first.length(), last.length()); i++){
+
+            if (first.charAt(i) != last.charAt(i)) return strbuild.toString();
+
+            strbuild.append(first.charAt(i));
+        }
+
+        return strbuild.toString();
+
+    }
+}
+-----------------------------------------------------------------------------------
