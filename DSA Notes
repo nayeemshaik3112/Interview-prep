@@ -1,0 +1,22 @@
+String vs String Builder in depth
+
+String is immutable, once created it cannot be changed. Any modification creates a new String object.
+
+String Constant Pool
+- Where we store the objects of String literals.
+means String s1 = "Hello"; // stored in String constant pool
+String s2 = "Hello"; // s2 will point to the same object in the String constant pool
+
+Hello <- points by s1 and s2
+
+if we use new keyword then it will create a new object in heap memory
+String s3 = new String("Hello"); // creates a new object in heap memory 
+String s4 = new String("Hello"); // creates another new object in heap memory
+
+Thread Safety
+No synchronization needed
+
+String Pool Optimization
+Reuse objects → memory efficient
+
+StringBuilder - it is mutable, can be modified after creation. It is not thread-safe, so it should be used in single-threaded environments.
