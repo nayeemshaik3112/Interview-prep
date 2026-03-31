@@ -18,5 +18,30 @@ No synchronization needed
 
 String Pool Optimization
 Reuse objects → memory efficient
-
+-----------------------------------------------------------------------------
 StringBuilder - it is mutable, can be modified after creation. It is not thread-safe, so it should be used in single-threaded environments.
+
+StringBuilder:
+[ h e l l o _ _ _ _ ]
+           ↑ capacity
+
+Uses char[] array
+Has:
+capacity
+length
+
+Default:
+capacity = 16
+
+When exceeded:
+new capacity = (old * 2) + 2
+
+sb.append("text");
+sb.insert(1, "x");
+sb.delete(1, 3);
+sb.reverse();
+sb.toString();
+-----------------------------------------------------------------------------
+StringBuffer (Bonus for Interview)
+What is it?
+Same as StringBuilder but thread-safe
