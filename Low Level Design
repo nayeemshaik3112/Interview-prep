@@ -122,7 +122,7 @@ main{
 ---------------------------------------------------------------------------------------------------
 Other Ways to Implement Multithreading in Java
 
-1. Directly Defining a Runnable Instance
+1. Directly Defining a Runnable Instance with ananymous class
 
 class Main {
     public static void main(String[] args) {
@@ -164,3 +164,83 @@ class Main {
     }
 }
 ---------------------------------------------------------------------------------------------------
+
+if we keep on manually creating the threasds then it is diffcult to maintain and laso
+Thread Explosion
+Memory Issue
+Thread Leaks
+Context Switching Overhead
+
+Executor Framework: it will take care of thread creation
+
+The Executor Framework in Java is a high-level API that provides a simple and flexible mechanism for managing and controlling thread execution. It decouples:
+Task Submission: What you want to do.
+Task Execution: How and when it runs.
+---------------------------------------------------------------------------------------------------
+1. Executor Interface
+void execute(Runnable command): The execute method takes a Runnable task and runs it asynchronously in a thread. It doesn’t return any result, and you can’t track the execution outcome directly.
+---------------------------------------------------------------------------------------------------
+2. ExecutorService Interface implemets Executor
+submit(Callable task): Returns a Future object which allows you to track the progress of the task.
+shutdown(): Initiates an orderly shutdown of the executor, rejecting any new tasks but processing the already submitted ones.
+shutdownNow(): Tries to stop all actively executing tasks and halts the processing of waiting tasks.
+---------------------------------------------------------------------------------------------------
+3. ThreadPoolExecutor Class
+ThreadPoolExecutor is a concrete implementation of ExecutorService and is one of the most commonly used classes. It allows you to define a pool of threads to execute tasks.
+Key Parameters:
+
+corePoolSize: The number of threads to keep in the pool.
+maximumPoolSize: The maximum number of threads allowed in the pool.
+keepAliveTime: Time for which idle threads will be kept alive before being terminated.
+workQueue: A queue used to hold tasks before they are executed.
+---------------------------------------------------------------------------------------------------
+4. Executors Class
+Executors is a utility class that provides factory methods to create predefined types of executor services.
+Common Methods:
+
+newFixedThreadPool(int nThreads): Creates a thread pool with a fixed number of threads.
+newCachedThreadPool(): Creates a thread pool that can dynamically grow and shrink.
+newSingleThreadExecutor(): Creates a single-threaded executor.
+---------------------------------------------------------------------------------------------------
+Example 
+
+class EmailService {
+    private static final ExecutorService executor = Executors.newFixedThreadPool(10); // Thread pool with 10 threads
+
+    public static void sendEmail(String recipient) {
+        executor.execute(() -> {
+            System.out.println("Sending email to " + recipient + " on " + Thread.currentThread().getName());
+            try {
+                Thread.sleep(1000);  
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();  
+            }
+            System.out.println("Email sent to " + recipient);
+        });
+    }
+
+    public static void main(String[] args) {
+        for (int i = 1; i <= 25; i++) {
+            sendEmail("user" + i + "@gmail.com");  
+        }
+        executor.shutdown();  
+    }
+}
+Here executor.execute will submit the task 
+submit() also submits
+but when to use which one 
+
+executor.execute : It is used to submit Runnable tasks (tasks that do not return any result)
+submit : It is used to submit both Runnable and Callable tasks (tasks that can return a result).
+---------------------------------------------------------------------------------------------------
+Thread Starvation
+Thread starvation occurs when a thread is perpetually unable to access the resources it needs for execution due to high contention, 
+often caused by prioritizing certain threads over others. As a result, low-priority threads or threads with resource dependencies may never get a chance to execute.
+
+Fairness in Thread Scheduling
+Fairness ensures that all threads get an opportunity to execute, preventing some threads from being permanently blocked. 
+A fair scheduler allocates CPU time evenly across all threads, preventing starvation.
+
+1. Fixed Thread Pool : A Fixed Thread Pool creates a pool with a fixed number of threads. Once a task is submitted, the executor assigns it to an available thread from the pool. If all threads are busy, new tasks are queued until a thread becomes available.
+2. Cached Thread Pool : A Cached Thread Pool creates new threads as needed but reuses previously constructed threads when they are available. If a thread remains idle for more than 60 seconds, it is terminated and removed from the pool.
+3. Scheduled Thread Pools : A Scheduled Thread Pool allows you to schedule tasks with fixed-rate or fixed-delay execution policies.
