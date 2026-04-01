@@ -356,3 +356,19 @@ Main{
     }
 T2 is waiting for T1 to finish because T1 holds the lock on the Demo object. called queuing
 -----------------------------------------------------------------------------------
+volatile Keyword
+
+The volatile keyword in Java is used to ensure visibility, not atomicity. It tells the JVM that a variable's value may be updated by multiple threads and that every read or write should go directly to and from main memory,
+rather than being cached in a thread’s local memory (CPU cache).
+
+1.visibility: Any update made to a volatile variable by one thread becomes immediately visible to all other threads.
+Without volatile: one thread might keep reading an old value from its local cache.
+With volatile: all threads will always see the latest value in memory.
+
+2.No Caching: A volatile variable is always read from and written to main memory. This ensures there’s no outdated copy sitting in a CPU register or thread-local cache.
+
+3. Not Atomic :Even though volatile ensures visibility, it does not make operations atomic. For example, the following is not thread-safe even if count is declared as volatile
+
+volatile is best suited for scenarios where:
+One thread writes to a variable, and others only read it.
+-----------------------------------------------------------------------------------
