@@ -72,3 +72,51 @@ To sort the array of strings takes O(N log N) time, where N is the number of str
 Comparing the first and last strings takes O(M) time, where M is the length of
 Space complexity - 0(M) where M is the length of the longest common prefix.
 -----------------------------------------------------------------------------------
+
+Thread Safety and Synchronization 
+
+Race Condition
+When two or more tasks reach for the same data at the same moment, the first one to finish “wins,” and the final result depends on sheer timing - not on logic. 
+That timing lottery is called a race condition
+
+remember the count increment example over here
+
+Synchroized Keyword:
+
+We just saw how two threads can clash over the same data. To stop that clash, Java offers the synchronized keyword - a built-in way to let only one thread touch a critical section at a time.
+How it Fixes Race Condition
+When a thread enters a synchronized region, it grabs a monitor lock tied to an object (or the class itself).
+-> If the lock is available: the thread enters and safely runs the code inside.
+-> If the lock is already held by another thread: the thread waits (is blocked) until the lock is released.
+
+class SafeCounter {
+    private int count = 0;
+    public synchronized void increment() {
+        count++;          
+    }
+    public synchronized int getCount() {
+        return count;
+    }
+}
+
+Sometimes, using the synchronized keyword on an entire method can be too restrictive, 
+especially when only a small part of the method actually deals with shared data.
+
+Thats why we use the synchronized block:
+class SafeCounter {
+    private final Object lock = new Object();
+    private int count = 0;
+
+    public void increment() {
+        // Lock only the code that truly needs protection
+        synchronized (lock) {
+            count++;
+        }
+    }
+
+    public int getCount() {
+        // No lock needed for simple read, or use block if strict consistency required
+        return count;
+    }
+}
+
