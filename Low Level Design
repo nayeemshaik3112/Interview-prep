@@ -372,3 +372,60 @@ With volatile: all threads will always see the latest value in memory.
 volatile is best suited for scenarios where:
 One thread writes to a variable, and others only read it.
 -----------------------------------------------------------------------------------
+Atomic Variables
+Java provides a set of classes under the java.util.concurrent.atomic package, 
+designed to handle common types like integers and booleans in a thread-safe, high-performance way - without using locks.
+
+Example : Instagram Likes
+
+AtomicInteger
+AtomicBoolean
+AtomicLong
+AtomicReference
+
+All atomic classes use a technique called Compare-And-Swap (CAS) at the hardware level. This is what makes them lock-free and highly performant.
+
+CAS Concept
+CAS stands for Compare-And-Swap. It is a low-level CPU/hardware instruction that checks if a memory location holds an expected value, and if so, swaps it with a new value - all in one atomic step. Here's how it works in simple terms:
+“If the current value is what I expect it to be, update it with a new value. Otherwise, try again.”
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+class PurchaseAtomicCounter {
+
+    // A thread-safe integer backed by hardware-level CAS
+    private final AtomicInteger likes = new AtomicInteger(0);
+
+    // Atomically add 1 to the like counter
+    public void incrementLikes() {
+        int prev, next;
+        do {
+
+            // Step 1  – read the current value.
+            //           (May be outdated if another thread wins the race.)
+            prev = likes.get();
+
+            // Step 2  – compute the desired next value.
+            next = prev + 1;
+
+            // Step 3  – attempt to swap: 
+            /*          “If current value is still ‘prev’, set it to ‘next’.”
+             *          Returns true on success, false if another thread
+             *          already changed the value (retry needed).
+             */
+        } while (!likes.compareAndSet(prev, next));
+    }
+
+    // Read-only accessor
+    public int getCount() {
+        return likes.get();
+    }
+}
+------------------------------------------------------------------------------------------------------------
+Iteration Step        | Thread U1 Value Flow           | Thread U2 Value Flow           | Outcome
+------------------------------------------------------------------------------------------------------------
+prev = get()         | reads 10                       | reads 10                       | both see same start
+next = prev + 1      | computes 11                    | computes 11                    | both want 11
+compareAndSet()      | U1 succeeds (10 → 11)          | U2 fails (value now 11)        | U1 wins
+Retry loop           | exits                          | retries with prev=11, next=12  | eventually U2 sets 12
+--------------------------------------------------------------------------------------------------------------
