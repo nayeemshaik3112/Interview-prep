@@ -119,4 +119,28 @@ class SafeCounter {
         return count;
     }
 }
+-----------------------------------------------------------------------------------
+One Lock Per Object
 
+Every object has its own lock.
+
+class Counter {
+    public synchronized void increment() {
+        System.out.println(Thread.currentThread().getName() + " entered");
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+
+        Counter c1 = new Counter();
+        Counter c2 = new Counter();
+
+        new Thread(() -> c1.increment()).start();
+        new Thread(() -> c2.increment()).start();
+    }
+}
+
+So Lock Per Object means, C1 obj , T1 Thread - > T1 acquires lock on C1 and executes increment() method
+C2 obj , T2 Thread - > T2 acquires lock on C2 and executes increment() method
+what if again one more thread is created and tries to access c1 obj
+T1 already holds lock on C1 obj, so T3 will be blocked until T1 releases the lock on C1 obj
