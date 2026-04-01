@@ -90,7 +90,7 @@ Implementing Multithreading by Using the Callable Interface and Future
 class some implements Callable<String>{
     @Override
     public String call() throws InterruptedException {
-        Thread.sleep(2000); // Simulate a time-consuming task
+        Thread.sleep(2000); 
         return "Task Completed";
     }
 }
