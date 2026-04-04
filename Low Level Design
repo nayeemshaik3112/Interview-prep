@@ -237,7 +237,7 @@ Thread Starvation
 Thread starvation occurs when a thread is perpetually unable to access the resources it needs for execution due to high contention, 
 often caused by prioritizing certain threads over others. As a result, low-priority threads or threads with resource dependencies may never get a chance to execute.
 
-Fairness in Thread Scheduling
+Thread Fairness in Thread Scheduling
 Fairness ensures that all threads get an opportunity to execute, preventing some threads from being permanently blocked. 
 A fair scheduler allocates CPU time evenly across all threads, preventing starvation.
 
@@ -280,14 +280,12 @@ class SafeCounter {
     private int count = 0;
 
     public void increment() {
-        // Lock only the code that truly needs protection
         synchronized (lock) {
             count++;
         }
     }
 
     public int getCount() {
-        // No lock needed for simple read, or use block if strict consistency required
         return count;
     }
 }
@@ -411,13 +409,11 @@ prev = get()         | reads 10                       | reads 10                
 next = prev + 1      | computes 11                    | computes 11                    | both want 11
 compareAndSet()      | U1 succeeds (10 → 11)          | U2 fails (value now 11)        | U1 wins
 Retry loop           | exits                          | retries with prev=11, next=12  | eventually U2 sets 12
---------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ReentrantLock - A Better Alternative to synchronized:
+
 ReentrantLock (in java.util.concurrent.locks) is a mutual-exclusion lock with ownership semantics: the thread that acquires it is the only one allowed to release it. 
 The same thread may acquire the lock multiple times ("re-enter") without deadlocking - hence reentrant.
-
-import java.util.concurrent.locks.ReentrantLock;
 
 class TicketBooking {
     private int availableSeats = 1;
@@ -466,10 +462,12 @@ When we create the Reentrant lock, then it can only release it other objects can
 Below is the clean example
 class ExpiringReentrantLock {
     private final ReentrantLock lock = new ReentrantLock();
+
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor();
 
     private volatile boolean isLocked = false;
+
     public boolean tryLockWithExpiry(long timeoutMillis) {
 
         boolean acquired = lock.tryLock();
@@ -598,4 +596,129 @@ class LockOrderingSimple {
         }
     }
 }
+--------------------------------------------------------------------------------------------------------------
+2. Using tryLock() with Timeout
+Another effective technique to prevent deadlock is by using tryLock() with a timeout, provided by the java.util.concurrent.locks.Lock interface.
+
+Instead of waiting forever to acquire a lock, a thread tries to acquire it for a limited time only. 
+If it fails, it backs off and optionally retries later. This prevents the system from getting stuck in a deadlock state.
+
+Condition Broken: Hold and Wait
+A thread doesnt hold one resource indefinitely while waiting for another - it tries both, and if unsuccessful, it gives up and tries again or exits.
+--------------------------------------------------------------------------------------------------------------
+
+The Producer-Consumer Problem
+
+The Producer-Consumer Problem, also known as the Bounded Buffer Problem, is a classic example of a multi-process synchronization issue. It revolves around coordinating two types of threads:
+Producers: which generate data and add it to a shared buffer.
+Consumers: which take data from the buffer and process it.
+
+wait() and notify() methods
+These two methods provide a built-in signaling mechanism to safely pause and resume threads based on the shared resources state:
+wait(): Causes the current thread to pause and release the lock until another thread signals it using notify().
+notify(): Wakes up one waiting thread so it can try to re-acquire the lock and proceed.
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+// Shared resource: CoffeeMachine acts as a buffer of size 1
+class CoffeeMachine {
+    // Flag to indicate buffer status: true → coffee ready, false → cup empty
+    private boolean isCoffeeReady = false;
+
+    // Method to be run by the producer thread
+    public synchronized void makeCoffee() throws InterruptedException {
+        // If coffee is already ready, producer must wait (buffer is full)
+        while (isCoffeeReady) {
+            // Releases lock and waits until notified by consumer
+            wait();
+        }
+
+        // Simulate coffee preparation
+        System.out.println("Brewing coffee…");
+        Thread.sleep(1000); // Simulate time to make coffee
+
+        // Set the buffer to full (coffee is now ready)
+        isCoffeeReady = true;
+        System.out.println("Coffee ready!");
+
+        // Notify the consumer thread that coffee is available
+        notify();
+    }
+
+    // Method to be run by the consumer thread
+    public synchronized void drinkCoffee() throws InterruptedException {
+        // If no coffee is available, consumer must wait (buffer is empty)
+        while (!isCoffeeReady) {
+            // Releases lock and waits until notified by producer
+            wait();
+        }
+
+        // Simulate coffee consumption
+        System.out.println("Drinking coffee…");
+        Thread.sleep(1000); // Simulate time to drink coffee
+
+        // Set the buffer to empty (coffee has been consumed)
+        isCoffeeReady = false;
+        System.out.println("Cup emptied - brew next!");
+
+        // Notify the producer thread that it can brew again
+        notify();
+    }
+}
+
+// Driver class
+class ProducerConsumerProblem {
+    public static void main(String[] args) {
+        // Shared CoffeeMachine object acts as the synchronized monitor
+        CoffeeMachine machine = new CoffeeMachine();
+
+        // Producer thread that continuously makes coffee
+        Thread producer = new Thread(() -> {
+            while (true) {
+                try {
+                    machine.makeCoffee(); // Try to produce coffee
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Consumer thread that continuously drinks coffee
+        Thread consumer = new Thread(() -> {
+            while (true) {
+                try {
+                    machine.drinkCoffee(); // Try to consume coffee
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Start both threads
+        producer.start();
+        consumer.start();
+    }
+}
+
+How wait() and notify() Work Together?
+Initial State:
+The buffer (isCoffeeReady) is false — no coffee yet.
+The producer thread enters makeCoffee() and proceeds to brew coffee.
+The consumer thread enters drinkCoffee() but sees no coffee, so it goes to wait() and sleeps
+
+Producer Brews Coffee:
+After brewing (Thread.sleep(1000)), it sets isCoffeeReady = true.
+It then calls notify() to wake up the waiting consumer.
+The producer thread loops back but now finds coffee still present, so it goes into wait().
+
+Consumer Wakes Up and Drinks Coffee:
+The consumer, upon waking, sees that the coffee is ready.
+It drinks the coffee and sets isCoffeeReady = false.
+It then calls notify() to wake up the producer.
+Cycle Repeats:
+The producer wakes up and sees that coffee has been consumed.
+It brews another cup, and the entire cycle continues.
+
+Both methods are synchronized, so only one thread can run inside them at any time (mutual exclusion).
 --------------------------------------------------------------------------------------------------------------
