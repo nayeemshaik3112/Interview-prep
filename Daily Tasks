@@ -2,7 +2,8 @@ Spring Framework and Microservices and Docker containers -
 
  Docker basics, Spring Boot Basics
 ------------------------------------------------------------------------------------------------------------------------------------------
-Low Level Design- multi threading 
+Low Level Design- multi threading - All the threads Concepts, How to create a thread in all the ways (extend threads, implements runnable,
+through sub anaymous class, with () -> lambda functions, callable, future, synchronization, volatile, atomic variables, CAS) 
 ------------------------------------------------------------------------------------------------------------------------------------------
 DSA- Strings - 
 
@@ -10,11 +11,15 @@ Reverse of String problem
 Palindrome of a String,
 Largest odd number in the String 
 Longest Common Prefix
+Isomorphics Strings
 
 String Builder vs String
 ------------------------------------------------------------------------------------------------------------------------------------------
-Core Java- 
+Core Java - 
 ------------------------------------------------------------------------------------------------------------------------------------------
 Mysql-
-SQL Fundamentals -> Select, From, Where, Order by, as, distinct
+-> Select, From, Where, Order by, as, distinct
+-> SUM, AVG, MAX, MIN 
+-> In, Not in, Between, Not Between, Like, Not Like, NUllIF, IFNULL, Count
+-> Having, Order By. ROund, ABS, Greatest, Least, Coalesce
 ------------------------------------------------------------------------------------------------------------------------------------------

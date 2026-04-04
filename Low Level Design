@@ -412,3 +412,190 @@ next = prev + 1      | computes 11                    | computes 11             
 compareAndSet()      | U1 succeeds (10 → 11)          | U2 fails (value now 11)        | U1 wins
 Retry loop           | exits                          | retries with prev=11, next=12  | eventually U2 sets 12
 --------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ReentrantLock - A Better Alternative to synchronized:
+ReentrantLock (in java.util.concurrent.locks) is a mutual-exclusion lock with ownership semantics: the thread that acquires it is the only one allowed to release it. 
+The same thread may acquire the lock multiple times ("re-enter") without deadlocking - hence reentrant.
+
+import java.util.concurrent.locks.ReentrantLock;
+
+class TicketBooking {
+    private int availableSeats = 1;
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public void bookTicket(String user) {
+        System.out.println(user + " is trying to book...");
+
+        lock.lock();
+        try {
+            System.out.println(user + " acquired lock.");
+
+            if (availableSeats > 0) {
+                System.out.println(user + " successfully booked the ticket.");
+                availableSeats--;
+            } else {
+                System.out.println(user + " could not book the ticket. No seats left.");
+            }
+        } finally {
+            System.out.println(user + " is releasing the lock.");
+            lock.unlock();
+        }
+    }
+}
+
+class Main {
+    public static void main(String[] args) {
+        TicketBooking bookingSystem = new TicketBooking();
+
+        Thread user1 = new Thread(() -> bookingSystem.bookTicket("User 1"));
+        Thread user2 = new Thread(() -> bookingSystem.bookTicket("User 2"));
+        user1.start();
+        user2.start();
+
+        try {
+            user1.join();
+            user2.join();
+        } catch (InterruptedException e) {
+            System.out.println("Thread interrupted: " + e.getMessage());
+        }
+    }
+}
+--------------------------------------------------------------------------------------------------------------
+When we create the Reentrant lock, then it can only release it other objects cannot release it
+Below is the clean example
+class ExpiringReentrantLock {
+    private final ReentrantLock lock = new ReentrantLock();
+    private final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor();
+
+    private volatile boolean isLocked = false;
+    public boolean tryLockWithExpiry(long timeoutMillis) {
+
+        boolean acquired = lock.tryLock();
+        if (acquired) {
+            isLocked = true; 
+
+            scheduler.schedule(() -> {
+                if (isLocked) {
+                    System.out.println("Timeout reached – signalling owner to release.");
+                    isLocked = false;
+                }
+            }, timeoutMillis, TimeUnit.MILLISECONDS);
+        }
+        return acquired;
+    }
+
+    public void unlockSafely() {
+        if (lock.isHeldByCurrentThread()) {
+            isLocked = false;
+            lock.unlock();
+            System.out.println("Lock released by " + Thread.currentThread().getName());
+        }
+    }
+    public void shutdown() {
+        scheduler.shutdownNow();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        ExpiringReentrantLock expLock = new ExpiringReentrantLock();
+
+        Thread idleUser = new Thread(() -> {
+            if (expLock.tryLockWithExpiry(3000)) {
+                System.out.println("IdleUser acquired lock, going idle...");
+                try { Thread.sleep(5000); } // simulate long idle
+                catch (InterruptedException ignored) {}
+                expLock.unlockSafely();
+            }
+        }, "IdleUser");
+
+        Thread activeUser = new Thread(() -> {
+            try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+            while (true) {
+                if (expLock.tryLockWithExpiry(3000)) {
+                    System.out.println("ActiveUser booked!");
+                    expLock.unlockSafely();
+                    break;
+                } else {
+                    System.out.println("ActiveUser still waiting...");
+                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+                }
+            }
+        }, "ActiveUser");
+
+        idleUser.start();
+        activeUser.start();
+
+        try {
+            idleUser.join();
+            activeUser.join();
+        } catch (InterruptedException ignored) {}
+
+        expLock.shutdown();
+    }
+}
+--------------------------------------------------------------------------------------------------------------
+1. Mutual Exclusion : Only one thread can hold a particular resource at a time.
+Example: Each train occupies a unique portion of the track that others cannot use at the same time.
+
+2. Hold and Wait
+A thread holds one resource and waits to acquire another.
+Example: Train 1 holds track A and waits for track B, while Train 2 holds track B and waits for track C, and so on.
+
+3. No Preemption
+A resource cannot be forcibly taken away, and it must be released voluntarily.
+Example: No train is pushed back or removed from its current track segment - even if others are waiting.
+
+4. Circular Wait
+There exists a closed loop where each thread is waiting for a resource held by the next in the chain.
+Example: A to B to C to D back to A - each train waits for the next segment occupied by the other, forming a perfect cycle.
+--------------------------------------------------------------------------------------------------------------
+Prevent Deadlock with ORDERING
+class LockOrderingSimple {
+
+    static class Resource {
+        int id;
+        int value;
+
+        public Resource(int id, int value) {
+            this.id = id;
+            this.value = value;
+        }
+    }
+
+    public static void main(String[] args) {
+        Resource r1 = new Resource(101, 500);
+        Resource r2 = new Resource(102, 300);
+
+        Runnable task1 = () -> transfer(r1, r2, 50);
+        Runnable task2 = () -> transfer(r2, r1, 30);
+
+        new Thread(task1, "T1").start();
+        new Thread(task2, "T2").start();
+    }
+
+    public static void transfer(Resource a, Resource b, int amount) {
+        Resource[] locks = new Resource[] {a, b};
+
+        // Sort by unique ID - guarantees a consistent global lock order
+        Arrays.sort(locks, (x, y) -> Integer.compare(x.id, y.id));
+
+        synchronized (locks[0]) {
+            System.out.println(Thread.currentThread().getName() +
+                               " locked " + locks[0].id);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {}
+
+            synchronized (locks[1]) {
+                System.out.println(Thread.currentThread().getName() +
+                                   " locked " + locks[1].id);
+                System.out.println("Transferred " + amount +
+                                   " from " + a.id + " to " + b.id);
+            }
+        }
+    }
+}
+--------------------------------------------------------------------------------------------------------------
