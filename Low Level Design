@@ -356,7 +356,7 @@ T2 is waiting for T1 to finish because T1 holds the lock on the Demo object. cal
 -----------------------------------------------------------------------------------
 volatile Keyword
 
-The volatile keyword in Java is used to ensure visibility, not atomicity. It tells the JVM that a variable's value may be updated by multiple threads and that every read or write should go directly to and from main memory,
+The volatile keyword in Java is used to ensure visibility, not atomicity. It tells the JVM that a variables value may be updated by multiple threads and that every read or write should go directly to and from main memory,
 rather than being cached in a thread’s local memory (CPU cache).
 
 1.visibility: Any update made to a volatile variable by one thread becomes immediately visible to all other threads.
@@ -384,7 +384,7 @@ AtomicReference
 All atomic classes use a technique called Compare-And-Swap (CAS) at the hardware level. This is what makes them lock-free and highly performant.
 
 CAS Concept
-CAS stands for Compare-And-Swap. It is a low-level CPU/hardware instruction that checks if a memory location holds an expected value, and if so, swaps it with a new value - all in one atomic step. Here's how it works in simple terms:
+CAS stands for Compare-And-Swap. It is a low-level CPU/hardware instruction that checks if a memory location holds an expected value, and if so, swaps it with a new value - all in one atomic step. Heres how it works in simple terms:
 “If the current value is what I expect it to be, update it with a new value. Otherwise, try again.”
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -463,8 +463,7 @@ Below is the clean example
 class ExpiringReentrantLock {
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final ScheduledExecutorService scheduler =
-            Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private volatile boolean isLocked = false;
 

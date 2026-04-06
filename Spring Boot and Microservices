@@ -14,7 +14,7 @@ CONTROLLER:Presentation Layer
 Used for MVC applications (View-based)            Returns JSON directly            
 Returns HTML / JSP / Thymeleaf 
 
-@RequestMapping - generic all the api's should follow this , in get or other mapping we can define the rest of api structure
+@RequestMapping - generic all the apis should follow this , in get or other mapping we can define the rest of api structure
 @GetMapping, @Postmapping, @PutMapping, @DeleteMapping
 
 @RequestBody
