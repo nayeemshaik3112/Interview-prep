@@ -32,7 +32,8 @@ Mysql-
 -> In, Not in, Between, Not Between, Like, Not Like, NUllIF, IFNULL, Count
 -> Having, Order By. ROund, ABS, Greatest, Least, Coalesce
 ------------------------------------------------------------------------------------------------------------------------------------------
-kafka - 
+kafka - Kafka def, Cluster, Topic, Partition, Replication, Producer, Consumer, Broker, Zookeeper, Offset, Consumer Group, Retention Policy,
+and IVR Kafka flow
 ------------------------------------------------------------------------------------------------------------------------------------------
 Axon Framework with Event Sourcing and CQRS -
 ------------------------------------------------------------------------------------------------------------------------------------------
