@@ -30,13 +30,13 @@ Nashorn JavaScript engine
 users.stream()
      .filter(User::isActive)
      .map(User::getEmail)
-     .sorteded()
+     .sorted()
      .collect(Collectors.toList());
 
 stream() = I want to process a collection
 filter() = keep only needed records
 map() = convert one form to another
-sorteded() = arrange data
+sorted() = arrange data
 collect() = bring result back into a list/set/map
 
 Then convert requirement into steps:
@@ -51,7 +51,7 @@ public List<UserResponseDto> getRecentActivePremiumUsers() {
                 .filter(user -> user.getPlan() == Plan.PREMIUM)
                 .filter(user -> user.getCreatedDate() != null)
                 .filter(user -> !user.getCreatedDate().isBefore(thirtyDaysAgo))
-                .sorteded(Comparator.comparing(User::getName))
+                .sorted(Comparator.comparing(User::getName))
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -139,13 +139,13 @@ public List<UserDto> getUserDtos() {
             .collect(Collectors.toList());
 }
 -----------------------------------------------------------------
-sorteded()
-.sorteded(Comparator.comparing(User::getName))
+sorted()
+.sorted(Comparator.comparing(User::getName))
 
-“If requirement says order, top, latest, ascending, descending, use sorteded() or DB ORDER BY.”
-public List<Employee> getEmployeessortededBySalary(List<Employee> employees) {
+“If requirement says order, top, latest, ascending, descending, use sorted() or DB ORDER BY.”
+public List<Employee> getEmployeessortedBySalary(List<Employee> employees) {
     return employees.stream()
-            .sorteded(Comparator.comparing(Employee::getSalary).reversed())
+            .sorted(Comparator.comparing(Employee::getSalary).reversed())
             .collect(Collectors.toList());
 }
 ----------------------------------------------------------------
@@ -204,7 +204,7 @@ public List<String> getActiveUserEmails() {
             .filter(User::isActive)
             .map(User::getEmail)
             .filter(Objects::nonNull)
-            .sorteded()
+            .sorted()
             .collect(Collectors.toList());
 }
 --------------------------------------------------------
@@ -216,8 +216,8 @@ public UserDto getUserById(Long userId){
             .orElseThrow(() -> new RuntimeException("User not found"));
 }
 --------------------------------------------------------
-Write a ProductService method getAvailableProductssortededByPrice() that returns only products with available=true and stock > 0, sorteded by price ascending, then mapped to ProductResponseDto.
-public ProductResponseDto getAvailableProductssortededByPrice(){
+Write a ProductService method getAvailableProductssortedByPrice() that returns only products with available=true and stock > 0, sorted by price ascending, then mapped to ProductResponseDto.
+public ProductResponseDto getAvailableProductssortedByPrice(){
     return userRepository.findall().stream()
             .filter(products -> products.isAvailable() == true)
             .filter(products -> products.getStock() > 0)
@@ -238,7 +238,7 @@ public List<OrderDto> getDeliveredOrdersForCustomer(Long customerId) {
 }
 
 --------------------------------------------------------
-Write a PaymentService method getHighValueSuccessfulPayments(Long customerId) that returns payments where status is SUCCESS and amount is greater than 5000, sorteded by created time descending.
+Write a PaymentService method getHighValueSuccessfulPayments(Long customerId) that returns payments where status is SUCCESS and amount is greater than 5000, sorted by created time descending.
 public List<PaymentDto> getHighValueSuccessfulPayments(Long customerId) {
     return paymentRepository.findByCustomerId(customerId).stream()
             .filter(payment -> payment.getStatus() == PaymentStatus.SUCCESS)

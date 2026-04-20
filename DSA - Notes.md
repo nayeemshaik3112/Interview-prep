@@ -60,4 +60,7 @@ Heap stores objects created via new
 
  means in + -> s1 = s1 + " World"; // creates a new object and assigns it to s1 , s1 has been mutated to point to the new object
     in concat -> s1.concat(" World"); // creates a new object but s1 still points to the original object, s1 is not mutated
+
+    s1 = s1 + "world" means , new obj created , so s1 becomes not becomes but now in pool it refernce to helloworld 
+    value won't change , refernce changes
 -----------------------------------------------------------------------------
