@@ -59,7 +59,7 @@ public List<UserResponseDto> getRecentActivePremiumUsers() {
     private UserResponseDto toDto(User user) {
         return new UserResponseDto(user.getId(), user.getName(), user.getEmail());
     }
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Lambda Expression
 What is it?
 Short way to write implementation of functional interface.
@@ -71,7 +71,7 @@ mapping
 sorteding
 validation rule
 callback logic
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Functional Interface
 What is it?
 Interface with only one abstract method.
@@ -87,13 +87,13 @@ Predicate<User> verified = User::isVerified;
 return users.stream()
         .filter(active.and(verified))
         .collect(Collectors.toList());
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Function<T, R> - takes input T, returns R -> Function<User, UserDto> userMapper = this::toDto;
 
 Consumer<T> - takes input T, returns nothing -> Consumer<User> userPrinter = System.out::println;
 
 Supplier<T> - takes no input, returns T -> Supplier<User> userSupplier = () -> new User("John", 30);
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Method References - short form of lambda and used in filter/map/sorted operations when you want to call an existing method in same class
 User::isActive
@@ -101,7 +101,7 @@ User::getEmail nothing but  user -> user.getEmail()
 
 users.stream().filter(User::isActive()).map(user -> user.getEmail()).collect(Collectors.toList()).forEach(System.out::println);
 Not to use method reference when you need to do more than just call a method, like user -> user.getEmail().toLowerCase() cannot be replaced with method reference.
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Filter - Remove unwanted elements from stream based on condition
 When to use in service layer?
 Use when requirement says:
@@ -119,7 +119,7 @@ public List<Order> getDeliveredOrders(List<Order> orders) {
             .filter(order -> order.getStatus() == OrderStatus.DELIVERED)
             .collect(Collectors.toList());
 }
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 map()
 What is it?
 Transforms one object into another.
@@ -138,7 +138,7 @@ public List<UserDto> getUserDtos() {
             .map(this::toDto)
             .collect(Collectors.toList());
 }
------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 sorted()
 .sorted(Comparator.comparing(User::getName))
 
@@ -148,7 +148,7 @@ public List<Employee> getEmployeessortedBySalary(List<Employee> employees) {
             .sorted(Comparator.comparing(Employee::getSalary).reversed())
             .collect(Collectors.toList());
 }
-----------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 collect()
 What is it?
 Converts stream result into final structure.
@@ -160,12 +160,12 @@ Collectors.toMap()
 Collectors.groupingBy()
 Collectors.joining()
 Collectors.counting()
-----------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 forEach()
 users.stream()
     .filter(User::isActive)
     .forEach(user -> sendEmail(user));  // Ends here, can't add .map() after
-----------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Date and Time API
 Important classes:
 
@@ -175,7 +175,7 @@ LocalTime
 ZonedDateTime
 Period
 Duration
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 CompletableFuture
 
 CompletableFuture<User> userFuture =
@@ -187,7 +187,7 @@ CompletableFuture<List<Order>> orderFuture =
 UserDashboard dashboard = userFuture.thenCombine(orderFuture, (user, orders) ->
         new UserDashboard(user, orders)
 ).join();
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a UserService method getActiveUserEmails() that fetches all users from userRepository, keeps only active users, converts them to email list, removes null emails, sorteds emails alphabetically, and returns List<String>.
 public List<String> getActiveUserEmails(){
     return userRepository.findAll().stream().
@@ -207,7 +207,7 @@ public List<String> getActiveUserEmails() {
             .sorted()
             .collect(Collectors.toList());
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a UserService method getUserById(Long userId) that calls userRepository.findById(userId), throws RuntimeException("User not found") if absent, and returns a UserDto using map() or a mapper method.
 
 public UserDto getUserById(Long userId){
@@ -215,7 +215,7 @@ public UserDto getUserById(Long userId){
             .map(this::toDTo);
             .orElseThrow(() -> new RuntimeException("User not found"));
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a ProductService method getAvailableProductssortedByPrice() that returns only products with available=true and stock > 0, sorted by price ascending, then mapped to ProductResponseDto.
 public ProductResponseDto getAvailableProductssortedByPrice(){
     return userRepository.findall().stream()
@@ -224,10 +224,8 @@ public ProductResponseDto getAvailableProductssortedByPrice(){
             .sorted(Comparator.comparing(Product::getPrice()))
             .map(this::toDto)
             .collect(Collectors.toList());
-
-    //can write some dto here
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write an OrderService method getDeliveredOrdersForCustomer(Long customerId) that fetches orders by customer id, keeps only delivered orders, sorteds by delivered date descending, and returns DTOs.
 public List<OrderDto> getDeliveredOrdersForCustomer(Long customerId) {
     return orderRepository.findByCustomerId(customerId).stream()
@@ -237,7 +235,7 @@ public List<OrderDto> getDeliveredOrdersForCustomer(Long customerId) {
             .collect(Collectors.toList());
 }
 
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a PaymentService method getHighValueSuccessfulPayments(Long customerId) that returns payments where status is SUCCESS and amount is greater than 5000, sorted by created time descending.
 public List<PaymentDto> getHighValueSuccessfulPayments(Long customerId) {
     return paymentRepository.findByCustomerId(customerId).stream()
@@ -247,10 +245,10 @@ public List<PaymentDto> getHighValueSuccessfulPayments(Long customerId) {
             .map(this::toDto)
             .collect(Collectors.toList());
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a DepartmentService method groupEmployeesByDepartment() that fetches all employees and returns Map<String, List<Employee>> using Collectors.groupingBy(...).
 employees.stream().findAll().collect(Collectors.groupingBy(Employee::getDepartment))
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a UserService method getDistinctRolesOfActiveUsers() where each user has List<Role> roles. 
 Fetch all users, keep only active users, flatten all roles, 
 convert roles to role names, remove duplicates, sorted them, and return List<String>.
@@ -264,7 +262,7 @@ public List<String> getDistinctRolesOfActiveUsers() {
             .sorted()                                         // Sort alphabetically
             .collect(Collectors.toList());
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Write a reusable Predicate<User> for “active premium user”, then use it in a service method getActivePremiumUsers().
 private final Predicate<User> isActivePremiumUser =
         user -> user.isActive() && user.getPlan() == Plan.PREMIUM;
@@ -275,4 +273,4 @@ public List<UserDto> getActivePremiumUsers() {
             .map(this::toDto)
             .collect(Collectors.toList());
 }
---------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,8 +1,10 @@
 Java 17 Complete Notes
 
-Java 17 is a long term support release that focuses on reducing boilerplate, improving safety, enforcing better design, and providing modern language features.
+Java 17 is a long term support release that focuses on reducing boilerplate, 
+improving safety, enforcing better design, and providing modern language features.
 
-Java 8 introduced functional programming. Java 11 focused on cleanup and stability. Java 17 focuses on modern language design, safety, and maintainability. 
+Java 8 introduced functional programming. Java 11 focused on cleanup and stability.
+Java 17 focuses on modern language design, safety, and maintainability 
 
 Records
 
@@ -23,7 +25,7 @@ Constructors
 record User(String name, int age) {
 public User {
 if (age < 0) throw new IllegalArgumentException();
-}
+    }
 }
 
 Methods
@@ -270,8 +272,8 @@ Remaining Java 17 Features Summary
 Records
 Sealed Classes
 Pattern Matching for instanceof
-Switch Expressions
-Text Blocks
+Switch Expressionsks
+Text Bloc
 Helpful NullPointerException
 Strong Encapsulation
 Foreign Function and Memory API
