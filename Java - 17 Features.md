@@ -37,6 +37,7 @@ Important points
 Fields are final
 Class is final
 Cannot extend another class
+inheritance not supported
 Can implement interfaces
 Shallow immutable (internal objects can change)
 
