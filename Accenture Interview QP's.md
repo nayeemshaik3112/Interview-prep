@@ -25,6 +25,57 @@ Provides thread-safe operations without locking the entire map, improving concur
 Allows multiple threads to read and write simultaneously with minimal blocking.
 Does not allow null keys or null values, preventing ambiguity in concurrent operations.
 
+14. Collection vs Collections
+-Collection is an interface that represents a group of objects and is the root of the collection hierarchy.
+Interface → cannot create object directly
+Implemented by: List, Set, Queue
+
+-Collections is a utility class that provides static methods to perform operations like sorting and searching on collection objects.
+sort(), reverse(), shuffle(), min(), max() 
+
+15. ArrayList() vs LinkedList()
+if we try to insert an element in middle of 10 million elements how will it perform in LL and in AL
+In LL - we need to get the middle of the node means O(n) to search the middle node
+In AL - Through index we can catch the middle of the node and insert there
+so AL is faster than LL
+Although LinkedList has O(1) insertion, finding the middle takes O(n), so overall it’s O(n).
+ArrayList also takes O(n) due to shifting. However, in practice, ArrayList is often faster because of better cache locality and no traversal overhead.
+
+16. Hashmap vs Hashtable vs ConcurrentHashmap
+HashMap is not thread-safe and allows one null key and multiple null values, making it faster. 
+Hashtable is thread-safe but slower due to synchronization and does not allow null keys or values. In modern applications, we prefer ConcurrentHashMap instead of Hashtable
+
+17. Even though hashtable allows synchronization, why it creates issue in high concurrent environment
+- Although Hashtable is synchronized, it uses a single lock for all operations, which causes high contention and poor performance in multi-threaded environments. ConcurrentHashMap solves this using fine-grained locking and better concurrency control.
+one method - one thread is only able to access , 99 threads still wait to reach the method
+
+18. How you will design a custom immutable class that uses a collection like ArrayList
+public final class Employee {
+
+    private final List<String> skills;
+
+    public Employee(List<String> skills) {
+        this.skills = new ArrayList<>(skills); // defensive copy
+    }
+
+    public List<String> getSkills() {
+        return new ArrayList<>(skills); // return copy
+    }
+}
+
+19. What happens if you add elements to a HashSet with duplicate hashCode() values but different equals() implementations?
+HashSet uses:
+hashCode() → find bucket
+equals() → check uniqueness
+If multiple elements have the same hashCode but equals returns false, they will be stored in the same bucket but treated as distinct elements. This can degrade performance due to hash collisions.
+same bucket -> 1 stored -> 2 stored 
+
+20. Can constructors can be static and final
+21. Can a constructor have a return type and Can a constructor be inherited? 
+No it cannot have a return type and it cannot be inherted also , because each class has its own constructors    
+
+22. If a constructor cannot be inherited, can it still be called in a subclass? 
+- Constructors are not inherited because they are not class members, but they can be invoked in a subclass using the super() keyword. The parent constructor is always executed before the child constructor during object creation.
 -------------------------------------------------------------------------------------------------------------------------------
 ## 🔹 Java 8 / Functional Programming
 
