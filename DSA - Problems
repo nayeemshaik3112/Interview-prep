@@ -263,6 +263,7 @@ public int maxSubArray(int[] nums) {
 ---------------------------------------------------------------------------------------------------------
 Subarray Sum Equals K
 
+// O(n) time, O(n) space — using prefix sums and HashMap
 public int subarraySum(int[] nums, int k) {
     Map<Integer, Integer> map = new HashMap<>();
     map.put(0, 1); // important
