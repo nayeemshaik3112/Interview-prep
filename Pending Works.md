@@ -229,9 +229,22 @@ We don't use two-phase commit — it's too complex and fragile. Instead, we use 
 ## Finding the slow service in a chain?
 "Distributed tracing — every request carries a trace ID through all services. In Zipkin, I open that trace and see each service's span with timing. The span with the longest duration is where the problem is. Without tracing, you're guessing. This is why we configure tracing from day one — not after a problem happens."
 -------------------------------------------------------------------------
+## What is the production issue you solved - 
+- Tell about the dempotency, request - iD
+## What is the one feature you developed recenctly
+- Kafa in detail
+Outbox Table:
+Whenever a claim was created/updated, I stored the event in an outbox table within the same DB transaction.
 
+Event Publisher (Scheduler):
+Built a scheduled job that reads pending events from the outbox and publishes them to Kafka.
 
--------------------------------------------------------------------------
--------------------------------------------------------------------------
--------------------------------------------------------------------------
--------------------------------------------------------------------------
+Retry Mechanism:
+Added retry logic with exponential backoff for failures.
+
+Idempotency:
+Ensured events are not duplicated using unique event IDs.
+
+Documentation:
+Wrote a runbook explaining how to debug stuck events and how ops should handle alerts. 
+----------------------------------------------------------------------------------------------------------------------------------------------

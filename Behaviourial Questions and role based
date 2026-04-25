@@ -1,0 +1,37 @@
+1. Tell me about a time when you handled a critical production issue under pressure. What exactly was the issue, how did you identify the root cause, what steps did you take to fix it, and how did you ensure it wouldn’t happen again?
+
+2. Can you describe a situation where you had to work closely with cross-functional teams like QA, DevOps, or business stakeholders? How did you coordinate, handle dependencies, and ensure smooth delivery?
+
+3. Walk me through a complex feature you designed and implemented independently. What was the problem, how did you approach the design, what challenges did you face, and how did you solve them?
+
+4. Tell me about a time when you disagreed with a technical decision made by your team or lead. How did you present your concerns, what approach did you suggest, and what was the final outcome?
+
+5. Give me an example of when you contributed to a team discussion or influenced a technical decision. What was your input, how did you justify it, and what impact did it have on the project?
+
+6. How do you handle situations where requirements are unclear or keep changing? Can you give a real example of how you managed such a scenario and ensured delivery?
+
+7. Tell me about a time when you had to document a complex system, feature, or process. What did you document, how did you structure it, and how did it help the team or operations?
+
+8. Describe a situation where you took full ownership of a task or feature from start to finish. What responsibilities did you take on, and what was the outcome?
+
+9. Tell me about a time when something went wrong in your project. What was the issue, how did you handle it, and what did you learn from it?
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+## How do you become an SME in a new system?
+"I start by reading existing documentation and code — understanding what exists before suggesting changes. Then I trace one full request flow end-to-end — from API call to DB and back. I ask questions in team discussions to fill gaps. Within 2–3 sprints, I take ownership of one module — I fix bugs, write improvements, review PRs for that area. SME status comes from consistent contribution, not just reading."
+--------------------------------------------------------------------
+## Contributing when you're not the most senior?
+"I come prepared to meetings — I read the ticket or design doc beforehand. If I have a question or concern, I raise it with a concrete example, not just 'I'm not sure about this.' I ask 'have we considered X?' rather than 'X is wrong.' Senior people appreciate a junior who adds signal, not noise. I also follow up after meetings — if something was unclear, I clarify async instead of letting ambiguity carry into development."
+--------------------------------------------------------------------
+## How do you collaborate with QA?
+"I share the API contract before I start coding — QA writes test cases in parallel. I flag edge cases I'm aware of — they might not think of IVR-specific scenarios like duplicate calls or timeout retries. When QA finds a bug, I don't debate it — I reproduce it first, then fix or explain. After fixing, I tell them exactly what changed so they know what to retest. Good developer-QA relationship = fewer production bugs."
+--------------------------------------------------------------------
+## How do you document a microservice?
+"Four things: 
+(1) README — what this service does, how to run it locally. 
+(2) API contract — endpoints, request/response, error codes. 
+(3) Architecture decision records — why we made key design choices (so future developers don't undo them without context). 
+--------------------------------------------------------------------
+## Translating business requirements to technical design?
+"I listen for the business outcome first — not the feature request. If business says 'customers are calling back because they don't know their claim status,' the technical solution might be a notification service, not just an API. I ask: what triggers this? Who uses it? What's the failure scenario? Then I write a one-page technical proposal with the approach and trade-offs. I get sign-off before writing code — not after."
+--------------------------------------------------------------------
