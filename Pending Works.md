@@ -190,26 +190,48 @@ First, check if an index is missing on the queried column. Run EXPLAIN on the sl
 5. How do you know your service is unhealthy before users complain?
 Answer:
 We expose health check endpoints (/actuator/health) and collect metrics (response time, error rate, CPU, memory) using Prometheus. Grafana shows dashboards and sends alerts when something crosses the threshold — like error rate above 1% or response time above 2 seconds.
+----------------------------------------------------------------------------------------------------------------------------------------------
+## How do you break a monolith into microservices?
+"I look at the business domains first — not technical layers. If two features have completely different data, different teams owning them, and different scaling needs, they're candidates for separate services. For example, in my IVR project, customer data, policy data, and claims were owned by different business functions — so we made them separate services with their own databases. I avoid splitting too early — a wrong boundary is worse than staying monolithic a little longer."
+-------------------------------------------------------------------------
+## Sync vs async communication — when do you choose which?
+"Sync (REST/Feign) when I need an immediate answer to continue — like fetching customer details before building a response. Async (Kafka) when the caller doesn't need to wait — like sending a notification after a claim is filed. In my project, the IVR aggregation used sync Feign calls to customer and policy services, but claim events were published to Kafka for notifications asynchronously. The rule is simple: if you need the result now, go sync. If not, go async."
+
+Refer Delete Later file
+-------------------------------------------------------------------------
+## How do you handle failure when one microservice goes down?
+"We use a circuit breaker — Resilience4j in our case. If a downstream service keeps failing, the circuit opens and we stop sending requests to it. Instead, a fallback method returns a default or cached response. In my project, if Policy Service was down, the IVR still returned customer info with an empty policy list and a message saying data is temporarily unavailable — instead of crashing the whole call."
+-------------------------------------------------------------------------
+## How do you manage config across multiple services?
+"We use a centralized Config Server — Spring Cloud Config in my project. All environment-specific config (DB URLs, Kafka brokers, timeouts) lives in one place. Each service fetches its config at startup. When we need to change a Kafka address across 6 services, we change it in one file — not 6. For sensitive values, we use environment variables injected at runtime, not stored in files."
+-------------------------------------------------------------------------
+## Distributed transactions — one service succeeds, another fails?
+We don't use two-phase commit — it's too complex and fragile. Instead, we use the Outbox Pattern. When a claim is created, we save both the claim and an outbox event in the same database transaction. A separate process publishes that event to Kafka. If Kafka is down, the event stays in the outbox and retries — the claim data is never lost. Each step is independently retryable. This is the Saga pattern approach.
+-------------------------------------------------------------------------
+## How do you secure microservice communication?
+"External traffic goes through the API Gateway with JWT validation. Internal service-to-service calls trust the internal network — services are not exposed publicly. For sensitive internal calls, we can add service-level tokens or mTLS. In cloud environments, network policies restrict which services can talk to which, adding another layer without code changes."
+-------------------------------------------------------------------------
+## How do you design a REST API from scratch?
+"I start with the resource — what noun am I operating on? Then define the operations using standard HTTP verbs: GET to read, POST to create, PUT/PATCH to update, DELETE to remove. I define the request/response contract, error format, and status codes before writing any code. I also decide versioning upfront — /api/v1/. Then I write the controller, service, and repository layers. API contract first, implementation second."
+-------------------------------------------------------------------------
+## How do you version APIs for breaking changes?
+"Version in the URL — /api/v1/ and /api/v2/. Old clients keep using v1. New clients use v2. I never remove an old version immediately — I deprecate it, inform consumers, give a migration timeline (usually 3–6 months), then retire. Adding new optional fields to a response is non-breaking — changing field names or removing fields is breaking and needs a new version."
+-------------------------------------------------------------------------
+## HTTP status codes — real examples?
+"200 — successful GET or PUT. 201 — resource created (POST). 400 — client sent bad data (missing required field). 401 — not authenticated (no token). 403 — authenticated but not authorized (wrong role). 404 — resource doesn't exist. 409 — conflict (duplicate request). 500 — unexpected server error. I never return 200 with an error message in the body — that breaks client error handling."
+-------------------------------------------------------------------------
+## Container crashes in production — how do you recover?
+"In Docker Compose, set restart: always — container auto-restarts on crash. In cloud (ECS/Kubernetes), the orchestrator detects the unhealthy container and replaces it automatically using health check endpoints. The key is having health checks configured — /actuator/health for Spring Boot. Without health checks, the orchestrator doesn't know the container is broken even if it's running
+-------------------------------------------------------------------------
+## API is suddenly slow — debugging process?
+"Step one: check logs for exceptions or slow query warnings. Step two: check distributed traces (Zipkin) to find which service or DB call is taking long. Step three: check if it's a traffic spike — Prometheus metrics on RPS and response time. Step four: check DB — slow query log, missing index, connection pool exhaustion. Most slowdowns are either a missing DB index or an upstream service degradation."
+-------------------------------------------------------------------------
+## Finding the slow service in a chain?
+"Distributed tracing — every request carries a trace ID through all services. In Zipkin, I open that trace and see each service's span with timing. The span with the longest duration is where the problem is. Without tracing, you're guessing. This is why we configure tracing from day one — not after a problem happens."
 -------------------------------------------------------------------------
 
-Code	    Name	                            Meaning	When You Use It (Interview Line)
 
-200	        OK	                                Success	Request processed successfully and response returned
-
-201	        Created	Resource created	        Used after successful POST request
-
-204	        No Content	Success, no body	    Used when operation succeeds but no data to return (DELETE)
-
-400     	Bad Request	Invalid input	        Client sent invalid or missing data
-
-401	        Unauthorized-Not authenticated	    JWT/token missing or invalid
-
-403	        Forbidden-No permission	            User authenticated but not allowed
-
-404	        Not Found-Resource missing	        Requested resource does not exist
-
-409	        Conflict-Duplicate/conflict	        Resource already exists or conflict occurs
-
-500	        Internal Server Error	            Server failure Unexpected error on server side
-
-503	        Service Unavailable	Service down	Service unavailable due to timeout or overload
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------

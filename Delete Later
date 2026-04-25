@@ -1,0 +1,69 @@
+## Synchronous
+
+@FeignClient(name = "customer-service")
+public interface CustomerClient {
+
+    @GetMapping("/customers/{id}")
+    CustomerDTO getCustomer(@PathVariable Long id);
+}
+
+@FeignClient(name = "policy-service")
+public interface PolicyClient {
+
+    @GetMapping("/policies/customer/{customerId}")
+    List<PolicyDTO> getPolicies(Long customerId);
+}
+
+@Service
+public class IvrAggregationService {
+
+    @Autowired
+    private CustomerClient customerClient;
+
+    @Autowired
+    private PolicyClient policyClient;
+
+    public AggregatedResponse getCustomerDetails(Long customerId) {
+
+        CustomerDTO customer = customerClient.getCustomer(customerId);   // 🔥 sync call
+        List<PolicyDTO> policies = policyClient.getPolicies(customerId); // 🔥 sync call
+
+        return new AggregatedResponse(customer, policies);
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------
+## Asynchronous
+
+@Service
+public class ClaimService {
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    public void createClaim(Claim claim) {
+
+        // Save claim
+        claimRepository.save(claim);
+
+        // Publish event
+        kafkaTemplate.send("claim-topic", "Claim Created for ID: " + claim.getId());
+    }
+}
+
+@Component
+public class NotificationConsumer {
+
+    @KafkaListener(topics = "claim-topic", groupId = "notification-group")
+    public void consume(String message) {
+
+        System.out.println("Received: " + message);
+
+        // Send SMS / Email
+        sendNotification(message);
+    }
+
+    private void sendNotification(String msg) {
+        System.out.println("Notification sent: " + msg);
+    }
+}
+-----------------------------------------------------------------------------------------------------------------------------------------
