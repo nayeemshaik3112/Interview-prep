@@ -36,17 +36,17 @@ queue = 50 means, if all threads are busy, up to 50 requests will be queued befo
 
 Every service has its own database, so no direct DB calls between services. They communicate via REST APIs.
 
-- API Gateway:
+# API Gateway:
 It's the single entry point for all external traffic. It handles JWT authentication so downstream services trust requests arriving from the gateway without re-validating tokens.
 It also provides route-based load balancing using Eureka service discovery, and we configured rate limiting to protect downstream services from spikes.
 
-- Eureka — The Phone Book
+# Eureka — The Phone Book
 Your discovery-server runs at port 8761. Every service has spring.cloud.netflix.eureka.client.service-url.defaultZone. On startup, each service registers itself with Eureka (name, IP, port, health endpoint).
 Every 30 seconds, it sends a heartbeat. If 3 heartbeats are missed, Eureka evicts it.
 The WHY: in containers, IPs change on every redeploy. If Policy Service restarts in Docker and gets a new IP, the Orchestrator Service doesn't care — it just asks Eureka for policy-service and gets the current address. 
 This is called client-side load balancing — the caller discovers and balances, not a separate load balancer.
 
-- Kafka + Outbox Pattern — The Reliable Event Bus
+# Kafka + Outbox Pattern — The Reliable Event Bus
 
 The claim is saved to claimsdb AND an ClaimEventOutbox row is inserted in the same database transaction.
 A scheduler (ClaimEventOutboxService.claimBatch()) polls the outbox table, picks up PENDING or FAILED rows
@@ -54,7 +54,7 @@ and publishes them to Kafka topic claim-events.
 Only after Kafka acknowledges (acks=all) does the outbox row get marked PUBLISHED.
 If Kafka is down, the rows stay PENDING with exponential backoff (retryBaseDelay: PT5S, retryMaxDelay: PT5M, maxAttempts: 8).
 
-- @CircuitBreaker — tracks failure rate. If >50% of calls fail in a window, the circuit opens. For the next 60 seconds,
+#@CircuitBreaker — tracks failure rate. If >50% of calls fail in a window, the circuit opens. For the next 60 seconds,
 calls don't even reach downstream services — they fail fast to fallback(). After the wait, a few calls are allowed through (half-open state). If they succeed, circuit closes.
 
 - @Retry — before the circuit breaker counts a failure, Retry gets first shot. If the call throws a transient exception, Retry will call it again (typically 3 times with delay).
@@ -96,6 +96,8 @@ Policy Service is slow — 8 seconds for every call. How do you fix it?
 1. How do your microservices talk to each other?
 Answer:
 Two ways — synchronous (one service calls another and waits for response, using REST or Feign client) and asynchronous (one service sends a message to Kafka and doesn't wait). We use REST when we need an immediate answer, Kafka when we don't — like sending notifications after an order is placed.
+
+Synchronous calls in microservices are blocking calls where the caller waits for the response before proceeding. In Spring Boot, we commonly use Feign clients or RestTemplate for synchronous communication between services.
 -------------------------------------------------------------------------
 2. One of your services is slow and causing all other services to wait. How do you handle it?
 Answer:
@@ -190,5 +192,24 @@ Answer:
 We expose health check endpoints (/actuator/health) and collect metrics (response time, error rate, CPU, memory) using Prometheus. Grafana shows dashboards and sends alerts when something crosses the threshold — like error rate above 1% or response time above 2 seconds.
 -------------------------------------------------------------------------
 
-## What is the critical thing is developed.
-- 
+Code	    Name	                            Meaning	When You Use It (Interview Line)
+
+200	        OK	                                Success	Request processed successfully and response returned
+
+201	        Created	Resource created	        Used after successful POST request
+
+204	        No Content	Success, no body	    Used when operation succeeds but no data to return (DELETE)
+
+400     	Bad Request	Invalid input	        Client sent invalid or missing data
+
+401	        Unauthorized-Not authenticated	    JWT/token missing or invalid
+
+403	        Forbidden-No permission	            User authenticated but not allowed
+
+404	        Not Found-Resource missing	        Requested resource does not exist
+
+409	        Conflict-Duplicate/conflict	        Resource already exists or conflict occurs
+
+500	        Internal Server Error	            Server failure Unexpected error on server side
+
+503	        Service Unavailable	Service down	Service unavailable due to timeout or overload
