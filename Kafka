@@ -1,0 +1,98 @@
+CATEGORY 1 — MUST KNOW (Top 12)
+
+## Why did you use Kafka instead of calling Notification Service directly via REST?
+A: REST call = tight coupling. If Notification Service is down, claim creation fails too. Kafka decouples them — Claims publishes event and moves on. Notification processes when ready.
+WHY: Two services with different failure profiles should not fail together. Kafka gives us independent failure domains + message durability.
+-----------------------------------------------------------------------------------
+## Why acks=all?
+A: Producer waits for ALL replicas to confirm before considering message sent. If leader broker dies, message still exists on other brokers.
+WHY: Insurance claims are compliance-critical. We cannot lose a claim event. acks=1 risks loss if leader crashes immediately after writing.
+-----------------------------------------------------------------------------------
+## Why enable.idempotence=true?
+A: Without it, producer retries create duplicate messages in Kafka. Idempotence adds a sequence number — broker silently discards re-sent duplicates.
+WHY: Customer would receive duplicate SMS/email notifications. One config line eliminates an entire class of bugs.
+-----------------------------------------------------------------------------------
+## Why enable-auto-commit=false?
+A: Auto-commit marks message as "done" when received, not when processed. If service crashes after receiving but before processing — message is lost.
+WHY: Manual commit = we confirm only after successful processing. For business-critical events, "received" and "processed" are not the same thing.
+-----------------------------------------------------------------------------------
+## Why @RetryableTopic instead of try-catch retry inside consumer?
+A: In-place retry blocks the partition — no other messages processed while retrying. @RetryableTopic moves failed message to retry topic immediately. Main topic keeps flowing.
+WHY: If SMTP vendor is down for 5 minutes and we retry in-place, 5 minutes of claim notifications are stuck. With retry topics, other claims keep getting processed.
+
+
+-----------------------------------------------------------------------------------
+## why concurrency = number of partitions?
+A: Each partition is consumed by exactly one thread. If concurrency=5 but partitions=3, 2 threads sit idle. If concurrency=1, 2 partitions are unused.
+WHY: Parallelism ceiling is set by partition count. Matching them exactly gives maximum throughput with zero waste.
+
+We decide partitions based on throughput. For example, for 10K messages/sec, if one consumer handles ~1000 msg/sec, we use around 10–12 partitions. This allows parallel processing while maintaining manageable load per partition.
+-----------------------------------------------------------------------------------
+## Why 3 partitions for claim-events?
+A: 3 partitions = 3 parallel consumer threads = enough throughput for our claim volume. Easy to scale to 6 or 12 later by increasing partitions and adding pods.
+WHY: You can increase partitions but never decrease. Start conservative, scale up. Also — 3 matches our notification-service pod count.
+-----------------------------------------------------------------------------------
+## Why use the Outbox Pattern?
+A: If we save claim to DB and then Kafka publish fails — claim exists but notification event is lost forever. Outbox writes both in one DB transaction. Scheduler publishes to Kafka with retry.
+WHY: Distributed systems can't do atomic writes across DB + Kafka. Outbox makes it reliable without distributed transactions.
+-----------------------------------------------------------------------------------
+## Why replication factor = 3?
+A: 3 replicas means the system survives 2 broker failures simultaneously. Industry standard for production Kafka clusters.
+WHY: With replication=1, one broker failure = data loss. With replication=2, simultaneous 2-broker failure loses data. 3 is the safe minimum.
+-----------------------------------------------------------------------------------
+## Why claimId as Kafka message key?
+A: Same key always goes to same partition. All events for one claim — CREATED, UPDATED, CLOSED — stay on same partition, consumed in order.
+WHY: Without key, events for same claim could land on different partitions, processed by different threads, out of order. Order matters for claim state transitions.
+-----------------------------------------------------------------------------------
+## Why auto-offset-reset=earliest?
+A: When a new consumer group starts, it reads from the beginning of the topic — doesn't miss old messages.
+WHY: If notification-service restarts fresh or resets, we want to process ALL pending claim events, not skip old ones. For financial systems, missing an event is worse than processing a duplicate.
+-----------------------------------------------------------------------------------
+## Why max.poll.records=50?
+A: Consumer fetches max 50 messages per poll. Prevents consumer from taking a huge batch it can't finish within max.poll.interval.ms.
+WHY: If consumer fetches 500 records but processing takes too long, Kafka thinks it's dead and triggers rebalance — same messages processed again. 50 is a safe batch size for DB-write consumers.
+----------------------------------------------------------------------------------------------------------------------------------------------
+CATEGORY 2 — IMPORTANT (Next 8)
+
+## Why delivery.timeout.ms=120000 (2 minutes)?
+A: Total time budget for one send including all retries. Must be greater than retries × retry.backoff.ms.
+WHY: Our Outbox scheduler also retries every 5s. 2 minutes gives Kafka time to self-heal (broker restart, leader election) before we mark the outbox row as FAILED.
+-----------------------------------------------------------------------------------
+## Why linger.ms=5?
+A: Producer waits 5ms to collect more messages before sending a batch. Fewer network trips, higher throughput.
+WHY: At zero, every message is sent immediately — wasteful at high volume. 5ms is invisible to users but significantly improves batching efficiency.
+-----------------------------------------------------------------------------------
+Q15. Why session.timeout.ms=30000 and heartbeat=10000?
+A: Broker waits 30s for heartbeat before declaring consumer dead. Heartbeat sent every 10s (must be < session/3).
+WHY: Too low = false rebalances during GC pauses. Too high = slow failure detection. 30s/10s is the production sweet spot.
+-----------------------------------------------------------------------------------
+Q16. Why max.poll.interval.ms=300000 (5 minutes)?
+A: Max time between two poll() calls. If processing takes longer, Kafka kicks consumer out of group → rebalance → duplicate processing.
+WHY: If your consumer calls an external API (SMTP, SMS) that takes time, you need this buffer. Getting it wrong = phantom rebalances = duplicate notifications.
+-----------------------------------------------------------------------------------
+## Why use Feign instead of RestTemplate?
+A: Feign is declarative — one interface, zero HTTP boilerplate. Integrates with Eureka automatically via service name. RestTemplate needs manual URL building and config.
+WHY: In a 100+ microservice system, manual RestTemplate across every service = maintenance nightmare. Feign + Eureka = clean, auto-discovered clients.
+-----------------------------------------------------------------------------------
+## Why DltHandler?
+A: After all retries fail, message lands in Dead Letter Topic. @DltHandler catches it — logs it, saves to DB, fires an alert. Without it, failed messages vanish silently.
+WHY: In insurance, every failed notification must be tracked for compliance. Silent message loss is a regulatory risk.
+-----------------------------------------------------------------------------------
+Q19. Why compression.type=snappy?
+A: Snappy compresses message batches by ~50% before sending. Saves network bandwidth and broker storage. Fast compression/decompression — low CPU overhead.
+WHY: JSON insurance payloads compress very well. Snappy is the best balance of speed vs compression ratio for high-throughput systems.
+-----------------------------------------------------------------------------------
+Q20. Why max.in.flight.requests.per.connection=5?
+A: Max unacknowledged requests per broker connection. 5 is the maximum allowed when enable.idempotence=true — Kafka's own constraint.
+WHY: Higher value with idempotence risks message reordering. 5 gives good throughput parallelism while staying within Kafka's safety guarantee.
+
+acks=all              → no message loss (all replicas confirm)
+idempotence=true      → no duplicates on retry
+auto-commit=false     → commit only after processing
+concurrency=partitions → max parallelism, no waste
+claimId as key        → same claim, same partition, ordered
+Outbox pattern        → DB + Kafka can't be atomic — outbox bridges them
+@RetryableTopic       → retry without blocking partition
+DltHandler            → no silent message loss
+earliest              → never miss an event on restart
+replication=3         → survives 2 broker failures
