@@ -274,3 +274,43 @@ public List<UserDto> getActivePremiumUsers() {
             .collect(Collectors.toList());
 }
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Java 8 / Functional Programming
+
+What is Functional Interface
+Can functional interfaces have default methods
+
+Default methods are introduced in Java 8 to allow interfaces to have method implementations, enabling backward compatibility when new methods are added. They are inherited and can be overridden by implementing classes.
+
+Static methods in interfaces belong to the interface itself, are not inherited, and are used for utility or helper functionality related to the interface.
+
+Why default methods are introduced when abstract classes are already present
+ Difference between intermediate and terminal stream operations
+
+Intermediate operations are lazy and return a stream, while terminal operations trigger execution and produce a result.
+Intermediate - filter , map . Terminal - which collect(), foreach(), count().
+
+Map vs FlatMap
+
+// Sample data
+User1 (active): roles = [ADMIN, USER, MANAGER]
+User2 (active): roles = [USER, VIEWER]
+User3 (active): roles = [ADMIN, VIEWER]
+
+// After filter(User::isActive)
+Stream: [User1, User2, User3]
+
+// After flatMap(user -> user.getRoles().stream())
+// ↓ Flattens all role lists into single stream
+Stream: [ADMIN, USER, MANAGER, USER, VIEWER, ADMIN, VIEWER]
+
+// After map(Role::getRoleName)
+Stream: ["ADMIN", "USER", "MANAGER", "USER", "VIEWER", "ADMIN", "VIEWER"]
+
+// After distinct()
+Stream: ["ADMIN", "USER", "MANAGER", "VIEWER"]
+
+// After sorted()
+Stream: ["ADMIN", "MANAGER", "USER", "VIEWER"]
+
+List: ["ADMIN", "MANAGER", "USER", "VIEWER"]
