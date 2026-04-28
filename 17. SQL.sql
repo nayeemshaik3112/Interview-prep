@@ -125,7 +125,7 @@ Cause: @OneToMany with default LAZY loading + loop access
 
 Fix:
 1. JOIN FETCH in JPQL:
-   "SELECT c FROM Customer c JOIN FETCH c.orders"
+   SELECT c FROM Customer c JOIN FETCH c.orders
    
 2. @EntityGraph annotation on repository method
 
@@ -379,6 +379,7 @@ inner join payments p on p.payment_id = o.order_id
 where p.status = 'FAILED'
 --------------------------------------------------------------
 => You have employees and managers in the SAME table. Each employee has a manager_id. Show employee name and their managers name. Employees with no manager should still appear.
+
 SELECT e.name AS employee, m.name AS manager
 FROM employees e
 LEFT JOIN employees m ON e.manager_id = m.employee_id;
@@ -395,6 +396,7 @@ INNER JOIN enrollments e2
 INNER JOIN courses c2 ON e2.course_id = c2.course_id AND c2.name = 'SQL';
 --------------------------------------------------------------
 => Find customers who placed orders in January 2024 but did NOT place any orders in February 2024.
+
 SELECT DISTINCT c.customer_id, c.name
 FROM customers c
 INNER JOIN orders jan
@@ -406,6 +408,7 @@ LEFT JOIN orders feb
 WHERE feb.order_id IS NULL;
 --------------------------------------------------------------
 => Show each department name and count of employees. Include departments with ZERO employees.
+
 SELECT d.dept_name, COUNT(e.employee_id) AS emp_count
 FROM departments d
 LEFT JOIN employees e ON d.dept_id = e.dept_id
@@ -478,5 +481,38 @@ FROM (
 ) t
 WHERE dept_rank = 1;
 --------------------------------------------------------------
+You have 1 million rows in an orders table. Query is slow. Walk me through your optimization approach.
+
+Check with Explain
+check the select statments
+check the where clause
+check pagination
+create index on the column which is used in where clause
+
+Follow-up 1: When does adding an index hurt you?
+Answer: On write-heavy tables — every INSERT/UPDATE/DELETE must update all indexes. Too many indexes on a frequently written table slows writes significantly.
+
+Follow-up 2: What is a covering index?
+Answer: An index that contains all columns needed by the query — the DB never touches the actual table rows. Fastest possible read path.
 --------------------------------------------------------------
+Explain window functions with a real use case.
+
+Do calculations across a group of rows WITHOUT collapsing them
+Show each employees salary along with average salary of their department”
+
+select name, dept, salary,
+       AVG(salary) OVER (PARTITION BY dept) AS avg_dept_salary
+from employees
 --------------------------------------------------------------
+Pagination:
+
+it means how many record we want to show in a single page
+if we write
+
+select * from orders limit 3 offset 0 // 0 1 2
+it means we want to show 3 records from the orders table starting from the 0 th
+
+select * from orders limit 3 offset 3 // 4 5 6
+it means we want to show 3 records from the orders table starting from the 3 rd record
+
+formulae = int index = (page_number - 1) * items_per_page, items_per_page
