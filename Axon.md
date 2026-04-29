@@ -1,0 +1,84 @@
+COMMAND SIDE (Write):
+  ClaimAggregate + CommandHandler
+  → handles CreateClaimCommand
+  → handles UpdateClaimStatusCommand
+  → emits events (ClaimCreatedEvent, ClaimStatusUpdatedEvent)
+  → stored in EVENT STORE (append-only, source of truth)
+
+QUERY SIDE (Read):
+  ClaimView + ClaimProjection
+  → handles GetClaimQuery
+  → handles GetClaimsByStatusQuery
+  → stored in READ DB (MySQL / MongoDB / Redis — whatever is optimal for queries)
+  → kept in sync by listening to events
+-----------------------------------------------------------------------------------------------
+┌─────────────────────────────────────────────────────────────────────┐
+│                        AXON FRAMEWORK                               │
+│                                                                     │
+│  [1] CommandGateway ──sends──→ [2] CommandBus ──routes──→           │
+│                                                                     │
+│  [3] Aggregate (CommandHandler + EventSourcingHandler)              │
+│        → apply(event) → stores in [4] Event Store (Axon Server)     │
+│                                                                     │
+│  [4] Event Store ──publishes──→ [5] EventBus ──routes──→            │
+│                                                                     │
+│  [6] EventHandler (Projection) → updates [Read DB]                  │
+│                                                                     │
+│  [7] QueryGateway ──sends──→ QueryHandler → queries [Read DB]       │
+└─────────────────────────────────────────────────────────────────────┘
+-----------------------------------------------------------------------------------------------
+There are 2 buses
+Command Bus
+Event Bus
+
+Command Bus enroutes the event to @CommandHandler - it dooes bussiness logic and event generates with apply then update the event by @EventSourcing
+
+Now after all these Claim event has sucessfully emitted and user see 200
+
+Now 
+Event wil be published to Event Bus
+->Axon publishes the  ClaimCreatedEvent to EventBus
+
+->All registered @EventHandlers receive it
+
+-----------------------------------------------------------------------------------------------
+## What is CQRS? Why would you use it?
+
+CQRS stands for Command Query Responsibility Segregation. It separates write operations (Commands) from read operations (Queries) into different models. Commands change state; queries read state. You use it when write and read requirements diverge significantly — writes need transactional consistency, reads need speed and complex projections. Separating them lets you optimize each independently.
+-----------------------------------------------------------------------------------------------
+## What is Event Sourcing?
+
+Event Sourcing means storing every state-changing event as an immutable record instead of just the current state. The current state is derived by replaying the event history. This gives you a complete audit trail, the ability to reconstruct past states, and flexibility to build new projections from historical events without migration.
+-----------------------------------------------------------------------------------------------
+## What is an Aggregate in Axon?
+
+An Aggregate is a domain object annotated with @Aggregate that handles commands and emits events. It has a @CommandHandler method where business logic and validation happen, and @EventSourcingHandler methods where it updates its own in-memory state. When Axon needs the aggregate to process a new command, it loads all past events for that aggregate ID from the Event Store and replays them through the @EventSourcingHandler methods to restore its current state.
+-----------------------------------------------------------------------------------------------
+##  What is the difference between @EventHandler and @EventSourcingHandler?
+
+@EventSourcingHandler is inside the Aggregate itself — it updates the aggregate's in-memory state when its own events are applied; it's used for state reconstruction from the event log. @EventHandler is on any other Spring bean (like a Projection) — it reacts to published events to do work like building a Read DB, sending to Kafka, triggering notifications. They serve entirely different purposes: one rebuilds domain state, the other drives side effects.
+-----------------------------------------------------------------------------------------------
+## What is the Axon Event Store? How is it different from a regular DB?
+
+The Axon Event Store (backed by Axon Server) is an append-only ledger of domain events. Unlike a regular DB where you UPDATE existing rows, the event store never modifies past events — every state change is a NEW append. It's the single source of truth for aggregate history. Given any aggregate ID, it can replay all events to rebuild its current state from scratch.
+-----------------------------------------------------------------------------------------------
+## How does the Read DB get updated? What if it falls behind?
+
+The Projection's @EventHandler methods listen to the EventBus and update the Read DB as events arrive. If the Read DB falls behind (e.g., projection service restarts), Axon tracks the tracking token (last processed event position); when the service restarts it continues from where it left off, replaying missed events into the Read DB. If the Read DB becomes corrupted, you can drop the table and replay all events from the beginning — the Event Store is the source of truth.
+-----------------------------------------------------------------------------------------------
+## Explain your IVR project's Axon flow end-to-end.
+
+Use the story from Part 5 above — command → aggregate → event store → projection + outbox handler → Kafka → notification service. This covers command side, read side, and downstream integration in one clear narrative.
+-----------------------------------------------------------------------------------------------
+##  What is eventual consistency in CQRS? Is it a problem?
+
+After a command is processed and the event stored, the Read DB is updated asynchronously by the event handler. So there's a brief window where the write side has the new state but the read side hasn't caught up yet — this is eventual consistency. In most business cases, this is acceptable: the user submits a claim, gets a confirmation, and the dashboard reflects it within milliseconds. For cases where you need immediate read-after-write consistency, you can return the just-created data directly from the command response instead of querying the Read DB.
+-----------------------------------------------------------------------------------------------
+## When would you NOT use Axon/CQRS?
+
+For simple CRUD domains with no audit requirements, no multiple consumer projections, and no time-travel query needs. The overhead of maintaining two models, handling eventual consistency, and managing event versioning is not justified for a basic blog or admin panel. I'd use Spring Data JPA + a single DB for those cases.
+-----------------------------------------------------------------------------------------------
+## What happens if an @EventHandler in the Projection fails?
+
+Axon uses a Tracking Event Processor — it tracks the last successfully processed event position (tracking token). If an event handler throws an exception, Axon retries. If it keeps failing, it moves to a Dead Letter Queue (DLQ) so other events can continue processing. The projection can be reset and replayed from the Event Store at any time.
+-----------------------------------------------------------------------------------------------
